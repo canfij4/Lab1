@@ -1,0 +1,191 @@
+// Lab 1
+// ENGR-2350
+// Name: Jennifer Canfield  + Wyatt Garber
+// RIN:  661992677          + 661721523
+
+#include "engr2350_msp432.h"
+
+void GPIOInit();
+void TestIO();
+void ControlSystem();
+
+uint8_t LEDL; // Two variables to store the state of
+uint8_t LEDR; // the LEDs
+uint8_t SS1;
+uint8_t SS2;
+uint8_t BMP0;
+uint8_t BMP5;
+
+
+
+int main(void)
+{
+
+    SysInit();
+    GPIOInit();
+
+    printf("\r\n\n"
+           "***********\r\n"
+           "Lab 1 Start\r\n"
+           "***********\r\n");
+
+    while(1){
+        //TestIO();
+        ControlSystem();
+    }
+}
+
+void GPIOInit(){
+    // Add initializations of inputs and outputs
+    GPIO_setAsInputPin(GPIO_PORT_P2, GPIO_PIN3); //SS1
+    GPIO_setAsInputPin(GPIO_PORT_P3, GPIO_PIN2); //SS2
+    GPIO_setAsOutputPin( GPIO_PORT_P2, GPIO_PIN4 | GPIO_PIN5); //BiLED1
+    GPIO_setAsInputPinWithPullUpResistor( GPIO_PORT_P4 ,GPIO_PIN7 | GPIO_PIN0); //bumper button
+    GPIO_setAsInputPinWithPullUpResistor( GPIO_PORT_P8 ,GPIO_PIN0 | GPIO_PIN5); //bumper button
+    GPIO_setAsOutputPin( GPIO_PORT_P3, GPIO_PIN7 | GPIO_PIN6); //motor
+    GPIO_setAsOutputPin( GPIO_PORT_P5, GPIO_PIN4 | GPIO_PIN5); //motor
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8,GPIO_PIN0 | GPIO_PIN5);
+
+}
+
+void TestIO(){
+        // Add printf statement(s) for testing inputs
+
+        // Example code for testing outputs
+        while(1){
+            uint8_t cmd = getchar();
+            if(cmd == 'a'){
+                GPIO_setOutputHighOnPin(GPIO_PORT_P8,GPIO_PIN0);
+                printf("%c", cmd);
+    // Turn LEDL On
+            }else if(cmd == 'z'){
+                GPIO_setOutputLowOnPin(GPIO_PORT_P8,GPIO_PIN0);
+                printf("%c", cmd);
+    // Turn LEDL Off
+            }else if(cmd == 's'){
+                GPIO_setOutputHighOnPin(GPIO_PORT_P8,GPIO_PIN5);
+                printf("%c", cmd);
+    //Turn LEDR On
+            }else if(cmd == 'x'){
+                GPIO_setOutputLowOnPin(GPIO_PORT_P8,GPIO_PIN5);
+                printf("%c", cmd);
+    // Turn LEDR Off
+            }else if(cmd == 'q'){
+                GPIO_setOutputLowOnPin(GPIO_PORT_P2,GPIO_PIN4);
+                GPIO_setOutputHighOnPin(GPIO_PORT_P2,GPIO_PIN5);
+                printf("%c", cmd);
+    // Turn BiLED1 Red
+            }else if(cmd == 'w'){
+                GPIO_setOutputLowOnPin(GPIO_PORT_P2,GPIO_PIN4);
+                GPIO_setOutputLowOnPin(GPIO_PORT_P2,GPIO_PIN5);
+                printf("%c", cmd);
+    // Turn BiLED Off
+            }else if(cmd == 'e'){
+               GPIO_setOutputHighOnPin(GPIO_PORT_P2,GPIO_PIN4);
+               GPIO_setOutputLowOnPin(GPIO_PORT_P2,GPIO_PIN5);
+               printf("%c", cmd);
+    // Turn BiLED Green
+            }else if(cmd == 'd'){
+                GPIO_setOutputHighOnPin(GPIO_PORT_P3,GPIO_PIN7);
+                printf("%c", cmd);
+    // Turn LEFT MOTOR On
+            }else if(cmd == 'c'){
+                GPIO_setOutputLowOnPin(GPIO_PORT_P3,GPIO_PIN7);
+                printf("%c", cmd);
+    // Turn LEFT MOTOR Off
+           }else if(cmd == 'f'){
+                GPIO_setOutputLowOnPin(GPIO_PORT_P5,GPIO_PIN4);
+                printf("%c", cmd);
+    // Turn LEFT MOTOR Forward
+            }else if(cmd == 'v'){
+                GPIO_setOutputHighOnPin(GPIO_PORT_P5,GPIO_PIN4);
+                printf("%c", cmd);
+    // Left Motor Reverse
+           }else if(cmd == 'g'){
+                GPIO_setOutputHighOnPin(GPIO_PORT_P3,GPIO_PIN6);
+                printf("%c", cmd);
+    // Turn RIGHT MOTOR On
+            }else if(cmd == 'b'){
+                GPIO_setOutputLowOnPin(GPIO_PORT_P3,GPIO_PIN6);
+                printf("%c", cmd);
+    // Right Motor Off
+            }else if(cmd == 'h'){
+                GPIO_setOutputLowOnPin(GPIO_PORT_P5,GPIO_PIN5);
+                printf("%c", cmd);
+    // Turn RIGHT MOTOR Forward
+            }else if(cmd == 'n'){
+                GPIO_setOutputHighOnPin(GPIO_PORT_P5,GPIO_PIN5);
+                printf("%c", cmd);
+    // Turn RIGHT MOTOR Reverse
+            }
+
+        }
+}
+void ControlSystem(){
+    while(1){
+        SS1 = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN2);
+
+
+        if(SS1 != 0){
+            SS2 = GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN3);
+            if (LEDL){
+                GPIO_setOutputHighOnPin(GPIO_PORT_P3,GPIO_PIN7);
+            }
+            if (LEDR){
+                GPIO_setOutputHighOnPin(GPIO_PORT_P3,GPIO_PIN6);
+            }
+            if(SS2 != 0){ // If ss1 is on
+
+                //Set the BiLED to green
+                GPIO_setOutputHighOnPin(GPIO_PORT_P2,GPIO_PIN4);
+                GPIO_setOutputLowOnPin(GPIO_PORT_P2,GPIO_PIN5);
+
+                //Set both motors directions to "forward"
+                //GPIO_setOutputHighOnPin(GPIO_PORT_P3,GPIO_PIN6 | GPIO_PIN7);
+                GPIO_setOutputLowOnPin(GPIO_PORT_P5,GPIO_PIN4);
+                GPIO_setOutputLowOnPin(GPIO_PORT_P5,GPIO_PIN5);
+                    }
+            else{
+                //Set the BiLED to red
+                GPIO_setOutputLowOnPin(GPIO_PORT_P2,GPIO_PIN4);
+                GPIO_setOutputHighOnPin(GPIO_PORT_P2,GPIO_PIN5);
+
+                //Set both motors directions to "reverse"
+                //GPIO_setOutputHighOnPin(GPIO_PORT_P3,GPIO_PIN6 | GPIO_PIN7);
+                GPIO_setOutputHighOnPin(GPIO_PORT_P5,GPIO_PIN4);
+                GPIO_setOutputHighOnPin(GPIO_PORT_P5,GPIO_PIN5);
+            }
+
+            BMP0 = GPIO_getInputPinValue(GPIO_PORT_P4,GPIO_PIN0);
+
+            //If BMP0 is pressed
+            if(BMP0 != 1){
+                LEDR = !LEDR;
+                GPIO_toggleOutputOnPin(GPIO_PORT_P8,GPIO_PIN5);
+                GPIO_toggleOutputOnPin(GPIO_PORT_P3,GPIO_PIN6);
+                while(BMP0 != 1){
+                    __delay_cycles(240e3);
+                    BMP0 = GPIO_getInputPinValue(GPIO_PORT_P4,GPIO_PIN0);
+                }
+            }
+
+            BMP5 = GPIO_getInputPinValue(GPIO_PORT_P4,GPIO_PIN7);
+
+            //If BMP5 is pressed
+            if(BMP5 != 1){
+                LEDL = !LEDL;
+                GPIO_toggleOutputOnPin(GPIO_PORT_P8,GPIO_PIN0);
+                GPIO_toggleOutputOnPin(GPIO_PORT_P3, GPIO_PIN7);
+                while(BMP0 != 1){
+                    __delay_cycles(240e3);
+                    BMP5 = GPIO_getInputPinValue(GPIO_PORT_P4,GPIO_PIN7);
+                }
+            }
+
+        }
+        else{
+            GPIO_setOutputLowOnPin(GPIO_PORT_P3,GPIO_PIN6 | GPIO_PIN7);
+            GPIO_setOutputLowOnPin(GPIO_PORT_P2,GPIO_PIN4 | GPIO_PIN5);
+        }
+    }
+}
